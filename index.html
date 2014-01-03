@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+    <title>Test Shu Fa</title>
+    <style type="text/css">
+        canvas {border: 1px solid #ccc;}
+    </style>
+    <script type="text/javascript">
+
+    var PosStorage = function() {
+        this.currentPos = null;
+        this.strokeBuffer = [];
+        this.prevPos = null;       
+        this.beginStrokeTime = null;
+    }
+
+    PosStorage.prototype = {
+        // 记录当前pos位置
+        addPos: function(x, y){
+            this.currentPos = {
+                x: x, 
+                y: y,
+                t: new Date().valueOf() - this.beginStrokeTime
+            };
+
+            this.strokeBuffer.push(this.currentPos);
+        }
+    };
+
+    window.onload = function() {
+
+        var bMouseIsDown = false;
+
+        var oCanvas = document.getElementById("writer");
+        var oCtx = oCanvas.getContext("2d");
+        oCtx.save();
+
+        var brushImg = new Image;
+        brushImg.src = 'images/brush.png';
+
+        var iWidth = oCanvas.width;
+        var iHeight = oCanvas.height;
+
+//        oCtx.fillStyle = "rgb(255,255,255)";
+//        oCtx.fillRect(0,0,iWidth,iHeight);
+//
+//        oCtx.beginPath();
+//        oCtx.strokeStyle = "rgb(255,0,255)";
+//        oCtx.strokeWidth = "4px";
+
+        // 支持触摸式使用相应的事件替代
+        var SupportsTouches = ("createTouch" in document),
+        startEvent = SupportsTouches ? "touchstart" : "mousedown",
+        moveEvent = SupportsTouches ? "touchmove" : "mousemove",
+        endEvent = SupportsTouches ? "touchend" : "mouseup";
+
+        oCanvas['on' + startEvent] = function(e) {
+            bMouseIsDown = true;
+            var targetEvent = SupportsTouches ? e.touches.item(0) : e;
+            iLastX = targetEvent.clientX - oCanvas.offsetLeft + (window.pageXOffset||document.body.scrollLeft||document.documentElement.scrollLeft);
+            iLastY = targetEvent.clientY - oCanvas.offsetTop + (window.pageYOffset||document.body.scrollTop||document.documentElement.scrollTop);
+            e.preventDefault();
+            return false;
+        }
+
+        oCanvas['on' + endEvent] = function(e) {
+            bMouseIsDown = false;
+            iLastX = -1;
+            iLastY = -1;
+
+        }
+
+        oCanvas['on' + moveEvent] = function(e) {
+            if (bMouseIsDown) {
+                var targetEvent = SupportsTouches ? e.touches.item(0) : e;
+                var iX = targetEvent.clientX - oCanvas.offsetLeft + (window.pageXOffset||document.body.scrollLeft||document.documentElement.scrollLeft);
+                var iY = targetEvent.clientY - oCanvas.offsetTop + (window.pageYOffset||document.body.scrollTop||document.documentElement.scrollTop);
+                oCtx.moveTo(iLastX, iLastY);
+                for (var iw = 0; iw < 15; ++ iw) {
+                    oCtx.drawImage(brushImg, iX, iY, 20, 20);
+                }
+
+                iLastX = iX;
+                iLastY = iY;
+
+            }
+            e.preventDefault();
+            return false;
+        }
+    }
+    </script>
+</head>
+<body>
+    <canvas id="writer" width="715" height="580"></canvas>
+</body>
+</html>
